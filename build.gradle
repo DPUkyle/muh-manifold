@@ -1,0 +1,45 @@
+plugins {
+    id 'java'
+}
+
+group 'com.example'
+version '1.0-SNAPSHOT'
+
+targetCompatibility = JavaVersion.VERSION_11
+sourceCompatibility = JavaVersion.VERSION_11
+
+repositories {
+    jcenter()
+    maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
+}
+
+dependencies {
+    // Add manifold to -processorpath for javac
+    annotationProcessor group: 'systems.manifold', name: 'manifold-all', version: '2019.1.11'
+
+    compile group: 'systems.manifold', name: 'manifold-all', version: '2019.1.11'
+
+    testCompile 'junit:junit:4.12'
+}
+
+tasks.withType(JavaCompile) { //includes compileJava, compileTestJava
+    it.options.compilerArgs += ['-Xplugin:Manifold']
+
+    //for debugging purposes
+    doFirst {
+      logger.lifecycle 'Running javac with classpath: {}', it.classpath.files
+    }
+}
+
+tasks.compileJava {
+    classpath += files(sourceSets.main.output.resourcesDir) //adds build/resources/main to javac's classpath
+    dependsOn processResources
+}
+tasks.compileTestJava {
+    classpath += files(sourceSets.test.output.resourcesDir) //adds build/resources/test to test javac's classpath
+    dependsOn processTestResources
+}
+
+wrapper {
+  gradleVersion = '5.2.1'
+}
